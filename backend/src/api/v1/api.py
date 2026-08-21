@@ -1,0 +1,7 @@
+from fastapi import APIRouter
+from src.api.v1.endpoints import documents, quizzes, health
+
+api_router = APIRouter()
+api_router.include_router(health.router, prefix="/health", tags=["health"])
+api_router.include_router(documents.router, prefix="/documents", tags=["documents"])
+api_router.include_router(quizzes.router, prefix="/quizzes", tags=["quizzes"])
