@@ -2,11 +2,14 @@ import os
 import aiofiles
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
+from pathlib import Path
+import uuid
 import PyPDF2
 from pptx import Presentation
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from src.core.config import settings
+from src.core.database import SessionLocal
 from src.models.document import Document
 from src.services.ai_service import AIService
 
@@ -16,9 +19,14 @@ class DocumentService:
 
     async def save_upload_file(self, file: UploadFile) -> str:
         os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-        file_path = os.path.join(settings.UPLOAD_DIR, file.filename)
+        content = await file.read()
+        if len(content) > settings.MAX_FILE_SIZE:
+            raise ValueError("File exceeds max upload size")
+
+        safe_name = Path(file.filename or "upload.bin").name
+        file_path = os.path.join(settings.UPLOAD_DIR, f"{uuid.uuid4()}_{safe_name}")
+
         async with aiofiles.open(file_path, 'wb') as out_file:
-            content = await file.read()
             await out_file.write(content)
         return file_path
 
@@ -49,7 +57,8 @@ class DocumentService:
         )
         return splitter.split_text(text)
 
-    def process_document(self, document_id: str, file_path: str, db: Session):
+    def process_document(self, document_id: str, file_path: str):
+        db: Session = SessionLocal()
         try:
             # 1. Trích xuất text
             text = self.parse_document(file_path)
@@ -73,3 +82,5 @@ class DocumentService:
                 doc.status = "error"
                 db.commit()
             print(f"Error processing document: {e}")
+        finally:
+            db.close()

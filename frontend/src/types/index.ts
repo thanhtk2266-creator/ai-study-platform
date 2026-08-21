@@ -42,3 +42,36 @@ export interface QuizResult {
   questions: Question[];
   user_answers: Record<string, string>;
 }
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  full_name: string;
+  role: string;
+  created_at: string;
+}
+
+export interface AuthToken {
+  access_token: string;
+  token_type: "bearer";
+}
+
+export interface RecentAttempt {
+  attempt_id: string;
+  quiz_id: string;
+  quiz_title: string;
+  document_name?: string | null;
+  score: number;
+  correct_count: number;
+  total_questions: number;
+  submitted_at: string;
+}
+
+export interface DashboardStats {
+  total_documents: number;
+  ready_documents: number;
+  total_attempts: number;
+  average_score: number;
+  study_streak_days: number;
+  recent_attempts: RecentAttempt[];
+}

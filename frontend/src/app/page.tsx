@@ -1,85 +1,111 @@
 import Link from "next/link";
-import { Upload, Brain, CheckCircle, ArrowRight } from "lucide-react";
+import { Upload, Brain, CheckCircle, ArrowRight, Gauge, Shield, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-const features = [
+const steps = [
   {
     icon: Upload,
-    title: "Upload tài liệu",
-    description: "Tải lên PDF hoặc slide bài giảng. Hệ thống tự động phân tích nội dung.",
+    title: "Đưa tài liệu vào hệ thống",
+    description: "Tải PDF hoặc PPTX, hệ thống tự trích xuất nội dung và chuẩn hóa dữ liệu.",
   },
   {
     icon: Brain,
-    title: "AI tạo câu hỏi",
-    description: "AI đọc hiểu tài liệu và tự động sinh bộ câu hỏi trắc nghiệm chất lượng.",
+    title: "Sinh đề theo mục tiêu",
+    description: "Tạo quiz nhanh theo số câu, mức độ, và bám sát nội dung học của bạn.",
   },
   {
     icon: CheckCircle,
-    title: "Luyện đề & xem giải thích",
-    description: "Làm bài trực tuyến, chấm điểm tự động và xem giải thích đáp án chi tiết.",
+    title: "Làm bài và phân tích kết quả",
+    description: "Nộp bài, nhận điểm tự động cùng giải thích chi tiết từng câu hỏi.",
   },
+];
+
+const highlights = [
+  { icon: Gauge, title: "Nhanh", value: "Tạo đề trong vài giây" },
+  { icon: Shield, title: "Riêng tư", value: "Dữ liệu theo tài khoản" },
+  { icon: Timer, title: "Tập trung", value: "Flow học không gián đoạn" },
 ];
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary-50 via-white to-primary-50">
-        <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-              Ôn thi thông minh
-              <span className="block text-primary-600">với AI</span>
-            </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600">
-              Upload tài liệu bài giảng, AI sẽ tự động tạo bộ câu hỏi trắc
-              nghiệm để bạn ôn tập. Chấm điểm tự động và giải thích đáp án chi
-              tiết cho từng câu.
-            </p>
-            <div className="mt-10 flex items-center justify-center gap-4">
-              <Link href="/upload">
-                <Button size="lg" className="gap-2">
-                  Bắt đầu ngay <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link href="/dashboard">
-                <Button size="lg" variant="outline">
-                  Xem Dashboard
-                </Button>
-              </Link>
+    <div className="flex flex-col pb-16">
+      <section className="hero-grid relative overflow-hidden border-b border-blue-100/70">
+        <div className="absolute -left-24 top-0 h-72 w-72 rounded-full bg-cyan-200/30 blur-3xl" />
+        <div className="absolute -right-20 top-20 h-72 w-72 rounded-full bg-blue-300/35 blur-3xl" />
+
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+            <div className="fade-up">
+              <p className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700">
+                AI Study Platform
+              </p>
+              <h1 className="mt-5 text-4xl font-extrabold leading-tight text-slate-900 sm:text-5xl lg:text-6xl">
+                Biến tài liệu học thành
+                <span className="block text-blue-600">phòng luyện đề cá nhân</span>
+              </h1>
+              <p className="mt-6 max-w-2xl text-lg text-slate-600">
+                Một biến thể học tập hiện đại: upload nội dung, sinh đề thực chiến,
+                theo dõi tiến độ và giữ nhịp học ổn định mỗi ngày.
+              </p>
+
+              <div className="mt-9 flex flex-wrap items-center gap-4">
+                <Link href="/register">
+                  <Button size="lg" className="gap-2">
+                    Tạo tài khoản miễn phí <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link href="/upload">
+                  <Button size="lg" variant="outline">
+                    Bắt đầu tạo đề
+                  </Button>
+                </Link>
+              </div>
             </div>
+
+            <Card className="glass fade-up border-0" style={{ animationDelay: "0.12s" }}>
+              <CardContent className="space-y-4 p-6">
+                <p className="text-sm font-semibold text-slate-700">Ưu điểm nổi bật</p>
+                {highlights.map((item) => (
+                  <div key={item.title} className="flex items-center gap-3 rounded-xl bg-white/80 p-3">
+                    <div className="rounded-lg bg-blue-100 p-2 text-blue-700">
+                      <item.icon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{item.title}</p>
+                      <p className="text-sm text-slate-600">{item.value}</p>
+                    </div>
+                  </div>
+                ))}
+                <div className="rounded-xl bg-slate-900 p-4 text-white">
+                  <p className="text-sm text-slate-300">Sẵn sàng vào chế độ học sâu?</p>
+                  <p className="mt-1 text-base font-semibold">Thiết kế cho việc luyện đề hằng ngày.</p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
-
-        {/* Decorative gradient blobs */}
-        <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-primary-200/30 blur-3xl" />
-        <div className="absolute -bottom-24 left-0 h-72 w-72 rounded-full bg-primary-300/20 blur-3xl" />
       </section>
 
-      {/* Features Section */}
-      <section className="py-20">
+      <section className="py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-gray-900">
-              Quy trình đơn giản, hiệu quả cao
-            </h2>
-            <p className="mt-3 text-gray-600">
-              Chỉ cần 3 bước để bắt đầu ôn thi hiệu quả
+          <div className="mb-10 text-center">
+            <h2 className="text-3xl font-bold text-slate-900">Flow luyện đề 3 bước</h2>
+            <p className="mt-2 text-slate-600">
+              Tối ưu để học nhanh, nhớ lâu, và tiến bộ đều qua từng ngày.
             </p>
           </div>
 
           <div className="grid gap-8 md:grid-cols-3">
-            {features.map((feature, index) => (
-              <Card key={index} className="text-center">
+            {steps.map((feature, index) => (
+              <Card key={index} className="glass border-0 text-left fade-up" style={{ animationDelay: `${0.1 * index}s` }}>
                 <CardContent className="pt-6">
-                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary-100">
-                    <feature.icon className="h-7 w-7 text-primary-600" />
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
+                    <feature.icon className="h-6 w-6 text-blue-700" />
                   </div>
-                  <h3 className="mb-2 text-lg font-semibold text-gray-900">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm text-gray-600">{feature.description}</p>
+                  <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-blue-700">Bước {index + 1}</p>
+                  <h3 className="mb-2 text-lg font-semibold text-slate-900">{feature.title}</h3>
+                  <p className="text-sm text-slate-600">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}

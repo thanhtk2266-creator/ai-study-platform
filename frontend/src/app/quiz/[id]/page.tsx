@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, Send } from "lucide-react";
 import { QuestionCard } from "@/components/quiz/question-card";
+import { AuthGuard } from "@/components/auth/auth-guard";
 import { QuizProgress } from "@/components/quiz/quiz-progress";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,9 +57,10 @@ export default function QuizPage() {
     }
   };
 
-  // Loading state
+  let content: React.ReactNode;
+
   if (loading) {
-    return (
+    content = (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
@@ -66,11 +68,8 @@ export default function QuizPage() {
         </div>
       </div>
     );
-  }
-
-  // Error state
-  if (error || !quiz) {
-    return (
+  } else if (error || !quiz) {
+    content = (
       <div className="flex min-h-[60vh] items-center justify-center">
         <Card className="max-w-md">
           <CardContent className="pt-6 text-center">
@@ -86,15 +85,14 @@ export default function QuizPage() {
         </Card>
       </div>
     );
-  }
+  } else {
+    const currentQuestion = quiz.questions[currentIndex];
+    const isFirstQuestion = currentIndex === 0;
+    const isLastQuestion = currentIndex === quiz.questions.length - 1;
+    const answeredCount = Object.keys(answers).length;
 
-  const currentQuestion = quiz.questions[currentIndex];
-  const isFirstQuestion = currentIndex === 0;
-  const isLastQuestion = currentIndex === quiz.questions.length - 1;
-  const answeredCount = Object.keys(answers).length;
-
-  return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+    content = (
+      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       {/* Quiz Header */}
       <div className="mb-6">
         <h1 className="text-xl font-bold text-gray-900">{quiz.title}</h1>
@@ -150,6 +148,9 @@ export default function QuizPage() {
           </Button>
         )}
       </div>
-    </div>
-  );
+      </div>
+    );
+  }
+
+  return <AuthGuard>{content}</AuthGuard>;
 }

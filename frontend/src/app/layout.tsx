@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, Sora } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 
-const inter = Inter({ subsets: ["latin", "vietnamese"] });
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-jakarta",
+});
+
+const sora = Sora({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-sora",
+});
 
 export const metadata: Metadata = {
   title: "AI Study Platform - Nền tảng ôn thi thông minh",
@@ -19,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi">
-      <body className={inter.className}>
+      <body className={`${jakarta.variable} ${sora.variable}`}>
         <div className="flex min-h-screen flex-col">
           <Header />
           <main className="flex-1">{children}</main>

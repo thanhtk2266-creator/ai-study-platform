@@ -2,32 +2,39 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { FileText, Plus, Clock, BookOpen } from "lucide-react";
+import { FileText, Plus, Clock, BookOpen, Flame, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getDocuments } from "@/lib/api";
-import { formatDate } from "@/lib/utils";
-import type { Document } from "@/types";
+import { getDashboardStats, getDocuments } from "@/lib/api";
+import { formatDate, formatScore } from "@/lib/utils";
+import { AuthGuard } from "@/components/auth/auth-guard";
+import type { DashboardStats, Document } from "@/types";
 
 export default function DashboardPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchDocuments() {
+    async function fetchData() {
       try {
-        const data = await getDocuments();
-        setDocuments(data);
+        const [docData, statData] = await Promise.all([
+          getDocuments(),
+          getDashboardStats(),
+        ]);
+        setDocuments(docData);
+        setStats(statData);
       } catch {
         // Xử lý lỗi
       } finally {
         setLoading(false);
       }
     }
-    fetchDocuments();
+    fetchData();
   }, []);
 
   return (
+    <AuthGuard>
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
@@ -45,7 +52,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-3">
+      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardContent className="flex items-center gap-4 pt-6">
             <div className="rounded-lg bg-primary-100 p-3">
@@ -53,7 +60,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">
-                {documents.length}
+                {stats?.total_documents ?? documents.length}
               </p>
               <p className="text-sm text-gray-500">Tài liệu</p>
             </div>
@@ -65,7 +72,7 @@ export default function DashboardPage() {
               <BookOpen className="h-6 w-6 text-success-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">0</p>
+              <p className="text-2xl font-bold text-gray-900">{stats?.total_attempts ?? 0}</p>
               <p className="text-sm text-gray-500">Bài đã làm</p>
             </div>
           </CardContent>
@@ -76,12 +83,67 @@ export default function DashboardPage() {
               <Clock className="h-6 w-6 text-warning-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">--</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {stats ? `${stats.average_score.toFixed(1)}/10` : "--"}
+              </p>
               <p className="text-sm text-gray-500">Điểm TB</p>
             </div>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="flex items-center gap-4 pt-6">
+            <div className="rounded-lg bg-orange-50 p-3">
+              <Flame className="h-6 w-6 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{stats?.study_streak_days ?? 0}</p>
+              <p className="text-sm text-gray-500">Ngày streak</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-4 pt-6">
+            <div className="rounded-lg bg-sky-50 p-3">
+              <BarChart3 className="h-6 w-6 text-sky-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{stats?.ready_documents ?? 0}</p>
+              <p className="text-sm text-gray-500">Tài liệu sẵn sàng</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {!loading && stats && stats.recent_attempts.length > 0 && (
+        <div className="mb-8">
+          <h2 className="mb-4 text-xl font-bold text-gray-900">Lịch sử làm bài gần đây</h2>
+          <div className="grid gap-3 md:grid-cols-2">
+            {stats.recent_attempts.map((attempt) => (
+              <Card key={attempt.attempt_id}>
+                <CardContent className="pt-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-gray-900">{attempt.quiz_title}</p>
+                      <p className="text-sm text-gray-500">
+                        {attempt.document_name || "Không có tên tài liệu"}
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-primary-50 px-2 py-1 text-xs font-semibold text-primary-700">
+                      {formatScore(attempt.correct_count, attempt.total_questions)}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-sm text-gray-600">
+                    <span>
+                      {attempt.correct_count}/{attempt.total_questions} câu đúng
+                    </span>
+                    <span>{formatDate(attempt.submitted_at)}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Documents List */}
       <div>
@@ -146,5 +208,6 @@ export default function DashboardPage() {
         )}
       </div>
     </div>
+    </AuthGuard>
   );
 }

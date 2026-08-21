@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     # App
     APP_NAME: str = "AI Study Platform"
     DEBUG: bool = True
+    ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1"]
     
     # Database
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/ai_study_platform"
@@ -12,6 +13,14 @@ class Settings(BaseSettings):
     # Gemini
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-1.5-flash"
+
+    # Auth
+    JWT_SECRET_KEY: str = "change-this-in-production"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
+
+    # Security
+    RATE_LIMIT_PER_MINUTE: int = 120
     
     # ChromaDB
     CHROMA_PERSIST_DIR: str = "./chroma_data"

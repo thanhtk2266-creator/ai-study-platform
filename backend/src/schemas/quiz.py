@@ -36,6 +36,7 @@ class SubmitAnswersRequest(BaseModel):
 class QuizAttemptResponse(BaseModel):
     id: UUID
     quiz_id: UUID
+    answers: Dict[str, str]
     score: float
     correct_count: int
     total_questions: int

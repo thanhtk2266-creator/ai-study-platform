@@ -3,23 +3,60 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #f6f9ff;
+  --foreground: #182134;
+  --surface: #ffffff;
+  --surface-soft: #eef4ff;
 }
 
 body {
   color: var(--foreground);
-  background: var(--background);
-  font-family: "Inter", system-ui, sans-serif;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(13, 110, 253, 0.12), transparent 32%),
+    radial-gradient(circle at 80% 0%, rgba(0, 200, 170, 0.12), transparent 28%),
+    linear-gradient(180deg, #f7faff 0%, #f0f6ff 45%, #f8fbff 100%);
+  font-family: var(--font-jakarta), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-sora), sans-serif;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 10px 30px rgba(20, 39, 79, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(23, 50, 105, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(23, 50, 105, 0.06) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+
+.fade-up {
+  animation: fade-up 0.7s ease-out both;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Custom scrollbar */

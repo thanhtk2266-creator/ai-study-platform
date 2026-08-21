@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Trophy, RotateCcw, Home } from "lucide-react";
 import { ResultCard } from "@/components/quiz/result-card";
+import { AuthGuard } from "@/components/auth/auth-guard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -33,33 +34,32 @@ export default function ResultsPage() {
     fetchResults();
   }, [quizId]);
 
+  let content: React.ReactNode;
+
   if (loading) {
-    return (
+    content = (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
       </div>
     );
-  }
-
-  if (!result) {
-    return (
+  } else if (!result) {
+    content = (
       <div className="flex min-h-[60vh] items-center justify-center">
         <p className="text-gray-600">Không tìm thấy kết quả</p>
       </div>
     );
-  }
+  } else {
+    const { attempt, questions, user_answers } = result;
+    const scorePercentage = (attempt.correct_count / attempt.total_questions) * 100;
+    const scoreColor =
+      scorePercentage >= 80
+        ? "success"
+        : scorePercentage >= 50
+        ? "warning"
+        : "danger";
 
-  const { attempt, questions, user_answers } = result;
-  const scorePercentage = (attempt.correct_count / attempt.total_questions) * 100;
-  const scoreColor =
-    scorePercentage >= 80
-      ? "success"
-      : scorePercentage >= 50
-      ? "warning"
-      : "danger";
-
-  return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+    content = (
+      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       {/* Score Summary */}
       <Card className="mb-8">
         <CardContent className="pt-6">
@@ -121,6 +121,9 @@ export default function ResultsPage() {
           />
         ))}
       </div>
-    </div>
-  );
+      </div>
+    );
+  }
+
+  return <AuthGuard>{content}</AuthGuard>;
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileText, Sparkles } from "lucide-react";
 import { FileDropzone } from "@/components/upload/file-dropzone";
+import { AuthGuard } from "@/components/auth/auth-guard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { generateQuiz } from "@/lib/api";
@@ -43,6 +44,7 @@ export default function UploadPage() {
   };
 
   return (
+    <AuthGuard>
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-gray-900">Tải lên tài liệu</h1>
@@ -123,5 +125,6 @@ export default function UploadPage() {
         </Card>
       )}
     </div>
+    </AuthGuard>
   );
 }

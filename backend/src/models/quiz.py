@@ -8,11 +8,13 @@ class Quiz(Base):
     __tablename__ = "quizzes"
 
     id = Column(UUID(as_uuid=True), primary_key=True)
+    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"))
     title = Column(String)
     num_questions = Column(Integer)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+    owner = relationship("User", back_populates="quizzes")
     document = relationship("Document", back_populates="quizzes")
     questions = relationship("Question", back_populates="quiz")
     attempts = relationship("QuizAttempt", back_populates="quiz")
@@ -34,6 +36,7 @@ class QuizAttempt(Base):
     __tablename__ = "quiz_attempts"
 
     id = Column(UUID(as_uuid=True), primary_key=True)
+    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     quiz_id = Column(UUID(as_uuid=True), ForeignKey("quizzes.id"))
     answers = Column(JSON)
     score = Column(Float)
@@ -41,4 +44,5 @@ class QuizAttempt(Base):
     total_questions = Column(Integer)
     submitted_at = Column(DateTime(timezone=True), server_default=func.now())
 
+    owner = relationship("User", back_populates="attempts")
     quiz = relationship("Quiz", back_populates="attempts")

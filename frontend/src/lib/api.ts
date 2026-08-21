@@ -1,5 +1,13 @@
 import axios from "axios";
-import type { Document, Quiz, QuizResult } from "@/types";
+import type {
+  AuthToken,
+  AuthUser,
+  DashboardStats,
+  Document,
+  Quiz,
+  QuizResult,
+} from "@/types";
+import { clearToken, getToken } from "@/lib/auth";
 
 // Axios instance - proxy qua Next.js rewrites đến FastAPI
 const api = axios.create({
@@ -8,6 +16,53 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+api.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401) {
+      clearToken();
+    }
+    return Promise.reject(error);
+  }
+);
+
+// ====== Auth APIs ======
+
+export async function register(payload: {
+  email: string;
+  full_name: string;
+  password: string;
+}): Promise<AuthUser> {
+  const { data } = await api.post<AuthUser>("/auth/register", payload);
+  return data;
+}
+
+export async function login(payload: {
+  email: string;
+  password: string;
+}): Promise<AuthToken> {
+  const { data } = await api.post<AuthToken>("/auth/login", payload);
+  return data;
+}
+
+export async function getMe(): Promise<AuthUser> {
+  const { data } = await api.get<AuthUser>("/auth/me");
+  return data;
+}
+
+export async function getDashboardStats(): Promise<DashboardStats> {
+  const { data } = await api.get<DashboardStats>("/auth/me/dashboard");
+  return data;
+}
 
 // ====== Document APIs ======
 

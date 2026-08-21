@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Brain, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { clearToken, isAuthenticated } from "@/lib/auth";
 
 const navLinks = [
   { href: "/", label: "Trang chủ" },
@@ -15,6 +16,11 @@ const navLinks = [
 export function Header() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [authed, setAuthed] = useState(false);
+
+  useEffect(() => {
+    setAuthed(isAuthenticated());
+  }, [pathname]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-md">
@@ -41,6 +47,25 @@ export function Header() {
               {link.label}
             </Link>
           ))}
+          {authed ? (
+            <button
+              onClick={() => {
+                clearToken();
+                setAuthed(false);
+                window.location.href = "/login";
+              }}
+              className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+            >
+              Đăng xuất
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+            >
+              Đăng nhập
+            </Link>
+          )}
         </nav>
 
         {/* Mobile Menu Button */}
@@ -71,6 +96,25 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
+            {authed ? (
+              <button
+                onClick={() => {
+                  clearToken();
+                  setAuthed(false);
+                  window.location.href = "/login";
+                }}
+                className="rounded-lg px-4 py-3 text-left text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100"
+              >
+                Đăng xuất
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="rounded-lg px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100"
+              >
+                Đăng nhập
+              </Link>
+            )}
           </nav>
         </div>
       )}

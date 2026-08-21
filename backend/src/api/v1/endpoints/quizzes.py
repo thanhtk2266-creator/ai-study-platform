@@ -5,7 +5,8 @@ import uuid
 from src.core.database import get_db
 from src.schemas.quiz import QuizGenerateRequest, QuizResponse, SubmitAnswersRequest, QuizResultResponse
 from src.services.quiz_service import QuizService
-from src.dependencies import get_quiz_service
+from src.dependencies import get_quiz_service, get_current_user
+from src.models.user import User
 
 router = APIRouter()
 
@@ -13,10 +14,18 @@ router = APIRouter()
 def generate_quiz(
     request: QuizGenerateRequest,
     db: Session = Depends(get_db),
-    quiz_service: QuizService = Depends(get_quiz_service)
+    quiz_service: QuizService = Depends(get_quiz_service),
+    current_user: User = Depends(get_current_user),
 ):
     try:
-        return quiz_service.create_quiz(request.document_id, request.num_questions, db)
+        return quiz_service.create_quiz(
+            request.document_id,
+            request.num_questions,
+            current_user.id,
+            db,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -24,9 +33,10 @@ def generate_quiz(
 def get_quiz(
     quiz_id: uuid.UUID,
     db: Session = Depends(get_db),
-    quiz_service: QuizService = Depends(get_quiz_service)
+    quiz_service: QuizService = Depends(get_quiz_service),
+    current_user: User = Depends(get_current_user),
 ):
-    quiz = quiz_service.get_quiz(quiz_id, db)
+    quiz = quiz_service.get_quiz(quiz_id, current_user.id, db)
     if not quiz:
         raise HTTPException(status_code=404, detail="Quiz not found")
     return quiz
@@ -36,10 +46,11 @@ def submit_quiz(
     quiz_id: uuid.UUID,
     request: SubmitAnswersRequest,
     db: Session = Depends(get_db),
-    quiz_service: QuizService = Depends(get_quiz_service)
+    quiz_service: QuizService = Depends(get_quiz_service),
+    current_user: User = Depends(get_current_user),
 ):
     try:
-        return quiz_service.submit_quiz(quiz_id, request.answers, db)
+        return quiz_service.submit_quiz(quiz_id, current_user.id, request.answers, db)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -49,9 +60,10 @@ def submit_quiz(
 def get_quiz_results(
     quiz_id: uuid.UUID,
     db: Session = Depends(get_db),
-    quiz_service: QuizService = Depends(get_quiz_service)
+    quiz_service: QuizService = Depends(get_quiz_service),
+    current_user: User = Depends(get_current_user),
 ):
-    result = quiz_service.get_quiz_results(quiz_id, db)
+    result = quiz_service.get_quiz_results(quiz_id, current_user.id, db)
     if not result:
         raise HTTPException(status_code=404, detail="No results found")
     return result
