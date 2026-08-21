@@ -10,6 +10,8 @@ import { clearToken, isAuthenticated } from "@/lib/auth";
 const navLinks = [
   { href: "/", label: "Trang chủ" },
   { href: "/upload", label: "Tải tài liệu" },
+  { href: "/flashcards", label: "Flashcard" },
+  { href: "/history", label: "Lịch sử" },
   { href: "/dashboard", label: "Bảng điều khiển" },
 ];
 

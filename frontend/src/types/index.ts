@@ -24,6 +24,7 @@ export interface Question {
   options: { A: string; B: string; C: string; D: string };
   correct_answer?: string;
   explanation?: string;
+  category?: string | null;
   order_index: number;
 }
 
@@ -67,6 +68,22 @@ export interface RecentAttempt {
   submitted_at: string;
 }
 
+export interface ScoreHistoryItem {
+  attempt_id: string;
+  quiz_title: string;
+  score: number;
+  correct_count: number;
+  total_questions: number;
+  submitted_at: string;
+}
+
+export interface CategoryStatItem {
+  category: string;
+  total_answered: number;
+  correct_count: number;
+  accuracy: number;
+}
+
 export interface DashboardStats {
   total_documents: number;
   ready_documents: number;
@@ -74,4 +91,34 @@ export interface DashboardStats {
   average_score: number;
   study_streak_days: number;
   recent_attempts: RecentAttempt[];
+  score_history: ScoreHistoryItem[];
+  category_stats: CategoryStatItem[];
+}
+
+// ====== Flashcards ======
+
+export interface Flashcard {
+  id: string;
+  word: string;
+  ipa?: string | null;
+  meaning?: string | null;
+  example?: string | null;
+  synonyms?: string[] | null;
+  order_index: number;
+}
+
+export interface FlashcardDeck {
+  id: string;
+  document_id?: string | null;
+  title?: string | null;
+  created_at: string;
+  cards: Flashcard[];
+}
+
+export interface FlashcardDeckSummary {
+  id: string;
+  document_id?: string | null;
+  title?: string | null;
+  created_at: string;
+  card_count: number;
 }

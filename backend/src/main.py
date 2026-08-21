@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from sqlalchemy import text
 from src.api.v1.api import api_router
 from src.core.config import settings
 from src.core.database import Base, engine
@@ -33,6 +34,12 @@ app.include_router(api_router, prefix="/api/v1")
 async def startup_event():
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     Base.metadata.create_all(bind=engine)
+    # Migration nhẹ: thêm cột category cho bảng questions đã tồn tại từ trước
+    with engine.connect() as conn:
+        conn.execute(
+            text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS category VARCHAR DEFAULT 'Khác'")
+        )
+        conn.commit()
 
 @app.get("/")
 async def root():

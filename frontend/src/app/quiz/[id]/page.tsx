@@ -2,14 +2,24 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, Send } from "lucide-react";
+import { ChevronLeft, ChevronRight, Send, Timer, AlertCircle } from "lucide-react";
 import { QuestionCard } from "@/components/quiz/question-card";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { QuizProgress } from "@/components/quiz/quiz-progress";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getQuiz, submitQuiz } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import type { Quiz } from "@/types";
+
+/** Format giây thành mm:ss */
+function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, "0");
+  const s = (seconds % 60).toString().padStart(2, "0");
+  return `${m}:${s}`;
+}
 
 export default function QuizPage() {
   const router = useRouter();
@@ -22,6 +32,15 @@ export default function QuizPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmSubmit, setConfirmSubmit] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+
+  // Đồng hồ đếm thời gian làm bài
+  useEffect(() => {
+    if (!quiz || submitting) return;
+    const t = setInterval(() => setElapsed((e) => e + 1), 1000);
+    return () => clearInterval(t);
+  }, [quiz, submitting]);
 
   // Fetch quiz data
   useEffect(() => {
@@ -47,6 +66,7 @@ export default function QuizPage() {
   const handleSubmit = async () => {
     if (!quiz) return;
     setSubmitting(true);
+    setConfirmSubmit(false);
 
     try {
       await submitQuiz(quizId, answers);
@@ -54,6 +74,15 @@ export default function QuizPage() {
     } catch {
       setError("Có lỗi khi nộp bài. Vui lòng thử lại.");
       setSubmitting(false);
+    }
+  };
+
+  const requestSubmit = () => {
+    const unanswered = quiz ? quiz.questions.length - Object.keys(answers).length : 0;
+    if (unanswered > 0) {
+      setConfirmSubmit(true);
+    } else {
+      handleSubmit();
     }
   };
 
@@ -93,15 +122,50 @@ export default function QuizPage() {
 
     content = (
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-      {/* Quiz Header */}
+      {/* Quiz Header + Timer */}
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">{quiz.title}</h1>
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-xl font-bold text-gray-900">{quiz.title}</h1>
+          <div
+            className={cn(
+              "flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold tabular-nums",
+              elapsed > 20 * 60
+                ? "bg-danger-50 text-danger-600"
+                : "bg-primary-50 text-primary-700"
+            )}
+            aria-label="Thời gian đã làm"
+          >
+            <Timer className="h-4 w-4" />
+            {formatTime(elapsed)}
+          </div>
+        </div>
         <div className="mt-3">
           <QuizProgress
             current={currentIndex + 1}
             total={quiz.questions.length}
           />
         </div>
+      </div>
+
+      {/* Bảng điều hướng nhanh */}
+      <div className="mb-6 flex flex-wrap gap-1.5">
+        {quiz.questions.map((q, i) => (
+          <button
+            key={q.id}
+            onClick={() => setCurrentIndex(i)}
+            className={cn(
+              "h-8 w-8 rounded-lg text-xs font-semibold transition-colors",
+              i === currentIndex
+                ? "bg-primary-600 text-white"
+                : answers[q.id]
+                ? "bg-success-100 text-success-700 hover:bg-success-200"
+                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            )}
+            aria-label={`Câu ${i + 1}${answers[q.id] ? " (đã trả lời)" : ""}`}
+          >
+            {i + 1}
+          </button>
+        ))}
       </div>
 
       {/* Question */}
@@ -133,7 +197,7 @@ export default function QuizPage() {
 
         {isLastQuestion ? (
           <Button
-            onClick={handleSubmit}
+            onClick={requestSubmit}
             isLoading={submitting}
             className="gap-2"
           >
@@ -148,6 +212,36 @@ export default function QuizPage() {
           </Button>
         )}
       </div>
+
+      {/* Xác nhận nộp bài khi còn câu bỏ trống */}
+      {confirmSubmit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <Card className="w-full max-w-md">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="mt-0.5 h-6 w-6 shrink-0 text-warning-600" />
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Bạn còn câu chưa trả lời
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-600">
+                    Bạn đã trả lời {answeredCount}/{quiz.questions.length} câu.
+                    Các câu bỏ trống sẽ bị tính là sai. Nộp bài bây giờ?
+                  </p>
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end gap-3">
+                <Button variant="outline" onClick={() => setConfirmSubmit(false)}>
+                  Làm tiếp
+                </Button>
+                <Button onClick={handleSubmit} isLoading={submitting}>
+                  Nộp bài
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
       </div>
     );
   }

@@ -12,8 +12,9 @@ class QuestionResponse(BaseModel):
     id: UUID
     question_text: str
     options: Dict[str, str]
+    category: Optional[str] = None
     order_index: int
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 class QuestionResultResponse(QuestionResponse):

@@ -1,26 +1,61 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Sparkles } from "lucide-react";
+import { FileText, Sparkles, Layers, CheckCircle, Loader2, Info } from "lucide-react";
 import { FileDropzone } from "@/components/upload/file-dropzone";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { generateQuiz } from "@/lib/api";
+import { generateQuiz, generateFlashcardDeck, getDocument } from "@/lib/api";
 import type { Document } from "@/types";
 
 type UploadState = "idle" | "uploaded" | "generating";
 
+/** Poll trạng thái tài liệu đến khi ready (AI cần thời gian xử lý xong mới tạo đề được) */
+function useDocumentStatus(initial: Document | null) {
+  const [document, setDocument] = useState<Document | null>(initial);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setDocument(initial);
+  }, [initial]);
+
+  useEffect(() => {
+    if (!document || document.status !== "processing") return;
+
+    const poll = async () => {
+      try {
+        const updated = await getDocument(document.id);
+        setDocument(updated);
+        if (updated.status === "processing") {
+          timerRef.current = setTimeout(poll, 2000);
+        }
+      } catch {
+        timerRef.current = setTimeout(poll, 3000);
+      }
+    };
+    timerRef.current = setTimeout(poll, 1500);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [document]);
+
+  return document;
+}
+
 export default function UploadPage() {
   const router = useRouter();
   const [state, setState] = useState<UploadState>("idle");
-  const [document, setDocument] = useState<Document | null>(null);
+  const [uploadedDoc, setUploadedDoc] = useState<Document | null>(null);
   const [numQuestions, setNumQuestions] = useState(10);
   const [error, setError] = useState<string | null>(null);
 
+  const document = useDocumentStatus(uploadedDoc);
+
   const handleUploadComplete = (doc: Document) => {
-    setDocument(doc);
+    setUploadedDoc(doc);
     setState("uploaded");
   };
 
@@ -43,6 +78,25 @@ export default function UploadPage() {
     }
   };
 
+  const handleGenerateFlashcards = async () => {
+    if (!document) return;
+
+    setState("generating");
+    setError(null);
+
+    try {
+      const deck = await generateFlashcardDeck(document.id, 15);
+      router.push(`/flashcards/${deck.id}`);
+    } catch {
+      setError("Có lỗi khi tạo flashcard. Vui lòng thử lại.");
+      setState("uploaded");
+    }
+  };
+
+  const isProcessing = document?.status === "processing";
+  const isError = document?.status === "error";
+  const isGenerating = state === "generating";
+
   return (
     <AuthGuard>
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
@@ -53,6 +107,21 @@ export default function UploadPage() {
           bạn
         </p>
       </div>
+
+      {/* Gợi ý định dạng để AI đọc được nội dung */}
+      {state === "idle" && (
+        <div className="mb-6 flex items-start gap-3 rounded-xl bg-sky-50 p-4">
+          <Info className="mt-0.5 h-5 w-5 shrink-0 text-sky-600" />
+          <div className="text-sm text-sky-900">
+            <p className="font-medium">Mẹo để AI tạo câu hỏi chất lượng:</p>
+            <ul className="mt-1 list-inside list-disc space-y-0.5 text-sky-800">
+              <li>Dùng file PDF chứa chữ (scan ảnh không đọc được) hoặc file PPTX</li>
+              <li>Nội dung tiếng Anh càng nhiều, câu hỏi càng chất lượng</li>
+              <li>Sau khi upload, đợi trạng thái "Sẵn sàng" rồi mới tạo đề</li>
+            </ul>
+          </div>
+        </div>
+      )}
 
       {/* Upload Zone */}
       {state === "idle" && (
@@ -72,11 +141,29 @@ export default function UploadPage() {
             {/* Thông tin file */}
             <div className="rounded-lg bg-gray-50 p-4">
               <p className="font-medium text-gray-900">{document.filename}</p>
-              <p className="text-sm text-gray-500">
-                Trạng thái:{" "}
-                <span className="font-medium text-success-600">
-                  {document.status === "ready" ? "Sẵn sàng" : "Đang xử lý..."}
-                </span>
+              <p className="mt-1 flex items-center gap-1.5 text-sm">
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin text-warning-600" />
+                    <span className="text-warning-600">
+                      AI đang phân tích tài liệu... (thường mất 5–15 giây)
+                    </span>
+                  </>
+                ) : isError ? (
+                  <span className="font-medium text-danger-600">
+                    Xử lý lỗi — file có thể là bản scan ảnh, hãy thử file khác
+                  </span>
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4 text-success-600" />
+                    <span className="font-medium text-success-600">Sẵn sàng</span>
+                    {document.chunk_count > 0 && (
+                      <span className="text-gray-500">
+                        · {document.chunk_count} đoạn nội dung đã phân tích
+                      </span>
+                    )}
+                  </>
+                )}
               </p>
             </div>
 
@@ -90,7 +177,8 @@ export default function UploadPage() {
                   <button
                     key={num}
                     onClick={() => setNumQuestions(num)}
-                    className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+                    disabled={isProcessing || isError}
+                    className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 ${
                       numQuestions === num
                         ? "border-primary-500 bg-primary-50 text-primary-700"
                         : "border-gray-200 text-gray-600 hover:bg-gray-50"
@@ -109,18 +197,33 @@ export default function UploadPage() {
               </div>
             )}
 
-            {/* Nút tạo đề */}
-            <Button
-              onClick={handleGenerateQuiz}
-              isLoading={state === "generating"}
-              className="w-full gap-2"
-              size="lg"
-            >
-              <Sparkles className="h-4 w-4" />
-              {state === "generating"
-                ? "AI đang tạo đề thi..."
-                : "Tạo đề thi"}
-            </Button>
+            {/* Nút hành động */}
+            <div className="space-y-3">
+              <Button
+                onClick={handleGenerateQuiz}
+                isLoading={isGenerating}
+                disabled={isProcessing || isError}
+                className="w-full gap-2"
+                size="lg"
+              >
+                <Sparkles className="h-4 w-4" />
+                {isGenerating
+                  ? "AI đang tạo đề thi..."
+                  : isProcessing
+                  ? "Đang chờ tài liệu sẵn sàng..."
+                  : "Tạo đề thi"}
+              </Button>
+              <Button
+                onClick={handleGenerateFlashcards}
+                disabled={isGenerating || isProcessing || isError}
+                variant="outline"
+                className="w-full gap-2"
+                size="lg"
+              >
+                <Layers className="h-4 w-4" />
+                Tạo flashcard từ vựng từ tài liệu này
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}

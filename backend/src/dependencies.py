@@ -8,11 +8,13 @@ from src.core.security import decode_access_token
 from src.services.ai_service import AIService
 from src.services.document_service import DocumentService
 from src.services.quiz_service import QuizService
+from src.services.flashcard_service import FlashcardService
 from src.models.user import User
 
 _ai_service = AIService()
 _document_service = DocumentService(_ai_service)
 _quiz_service = QuizService(_ai_service)
+_flashcard_service = FlashcardService(_ai_service)
 bearer_scheme = HTTPBearer(auto_error=False)
 
 def get_ai_service() -> AIService:
@@ -23,6 +25,9 @@ def get_document_service() -> DocumentService:
 
 def get_quiz_service() -> QuizService:
     return _quiz_service
+
+def get_flashcard_service() -> FlashcardService:
+    return _flashcard_service
 
 
 def get_current_user(

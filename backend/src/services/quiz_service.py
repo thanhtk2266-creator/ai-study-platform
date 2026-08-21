@@ -22,11 +22,11 @@ class QuizService:
             id=quiz_id,
             owner_id=owner_id,
             document_id=document_id,
-            title="Generated Quiz",
+            title=f"Luyện tập: {doc.filename}",
             num_questions=len(raw_questions)
         )
         db.add(db_quiz)
-        
+
         # Lưu các câu hỏi
         for i, q in enumerate(raw_questions):
             db_question = Question(
@@ -36,6 +36,7 @@ class QuizService:
                 options=q.get("options", {}),
                 correct_answer=q.get("correct_answer", ""),
                 explanation=q.get("explanation", ""),
+                category=q.get("category") or "Khác",
                 order_index=i
             )
             db.add(db_question)

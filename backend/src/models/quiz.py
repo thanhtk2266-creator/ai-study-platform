@@ -28,6 +28,8 @@ class Question(Base):
     options = Column(JSON)
     correct_answer = Column(String)
     explanation = Column(Text)
+    # Dạng câu hỏi (vd: Từ vựng, Ngữ pháp, Đọc hiểu...) dùng để phân tích điểm yếu
+    category = Column(String, default="Khác")
     order_index = Column(Integer)
 
     quiz = relationship("Quiz", back_populates="questions")

@@ -4,8 +4,11 @@ import type {
   AuthUser,
   DashboardStats,
   Document,
+  FlashcardDeck,
+  FlashcardDeckSummary,
   Quiz,
   QuizResult,
+  RecentAttempt,
 } from "@/types";
 import { clearToken, getToken } from "@/lib/auth";
 
@@ -61,6 +64,12 @@ export async function getMe(): Promise<AuthUser> {
 
 export async function getDashboardStats(): Promise<DashboardStats> {
   const { data } = await api.get<DashboardStats>("/auth/me/dashboard");
+  return data;
+}
+
+/** Lịch sử bài làm đầy đủ */
+export async function getMyAttempts(): Promise<RecentAttempt[]> {
+  const { data } = await api.get<RecentAttempt[]>("/auth/me/attempts");
   return data;
 }
 
@@ -129,6 +138,37 @@ export async function submitQuiz(
 export async function getQuizResults(quizId: string): Promise<QuizResult> {
   const { data } = await api.get<QuizResult>(`/quizzes/${quizId}/results`);
   return data;
+}
+
+// ====== Flashcard APIs ======
+
+/** Tạo bộ flashcard từ vựng từ một tài liệu */
+export async function generateFlashcardDeck(
+  documentId: string,
+  numCards: number = 15
+): Promise<FlashcardDeck> {
+  const { data } = await api.post<FlashcardDeck>("/flashcards/generate", {
+    document_id: documentId,
+    num_cards: numCards,
+  });
+  return data;
+}
+
+/** Lấy danh sách bộ flashcard */
+export async function getFlashcardDecks(): Promise<FlashcardDeckSummary[]> {
+  const { data } = await api.get<FlashcardDeckSummary[]>("/flashcards");
+  return data;
+}
+
+/** Lấy chi tiết 1 bộ flashcard (kèm các card) */
+export async function getFlashcardDeck(deckId: string): Promise<FlashcardDeck> {
+  const { data } = await api.get<FlashcardDeck>(`/flashcards/${deckId}`);
+  return data;
+}
+
+/** Xóa bộ flashcard */
+export async function deleteFlashcardDeck(deckId: string): Promise<void> {
+  await api.delete(`/flashcards/${deckId}`);
 }
 
 export default api;
