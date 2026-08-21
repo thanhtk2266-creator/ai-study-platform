@@ -1,15 +1,15 @@
 import json
 import chromadb
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
 from src.core.config import settings
 
 class AIService:
     def __init__(self):
         self.chroma_client = chromadb.PersistentClient(path=settings.CHROMA_PERSIST_DIR)
-        self.llm = ChatOpenAI(
-            model=settings.OPENAI_MODEL,
-            api_key=settings.OPENAI_API_KEY,
+        self.llm = ChatGoogleGenerativeAI(
+            model=settings.GEMINI_MODEL,
+            google_api_key=settings.GEMINI_API_KEY,
             temperature=0.2
         )
 

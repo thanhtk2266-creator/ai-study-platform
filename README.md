@@ -14,10 +14,10 @@ Nền tảng ôn thi/luyện đề sử dụng AI để tự động sinh câu h
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│    Frontend      │     │    Backend       │     │    Storage       │
-│   Next.js 14     │────▶│    FastAPI       │────▶│  PostgreSQL      │
-│   TypeScript     │     │    LangChain     │     │  ChromaDB        │
-│   Tailwind CSS   │     │    OpenAI GPT    │     │  File System     │
+│    Frontend     │     │    Backend      │     │    Storage      │
+│   Next.js 14    │───> │    FastAPI      │───> |  PostgreSQL     │
+│   TypeScript    │     │    LangChain    │     │  ChromaDB       │
+│   Tailwind CSS  │     │   Google Gemini │     │  File System    │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
 ```
 
@@ -39,7 +39,7 @@ cd ai-study-platform
 
 # Copy env file
 cp .env.example .env
-# Chỉnh sửa .env, thêm OPENAI_API_KEY
+# Chỉnh sửa .env, thêm GEMINI_API_KEY
 
 # Chạy tất cả services
 docker-compose up -d
